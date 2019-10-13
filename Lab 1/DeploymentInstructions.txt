@@ -4,4 +4,4 @@
 New-AzResourceGroup -Name 'MyResourceGroup' 'northeurope'
 
 # Deploy StorageAccount in 'MyResourceGroup' by using the given template files
-New-AzResourceGroupDeployment -ResourceGroupName 'MyResourceGroup' -TemplateFile '.\Lab 1\azuredeploy.json' -TemplateParameterFile '.\Lab 1\azuredeploy.parameters.json'
+New-AzResourceGroupDeployment -ResourceGroupName 'MyResourceGroup' -TemplateFile 'azuredeploy.json' -TemplateParameterFile 'azuredeploy.parameters.json'
