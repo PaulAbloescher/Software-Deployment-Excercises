@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service # specifies this resource as service
+metadata:
+  name: wordpress-mysql # specified name for the service
+  labels:
+    app: wordpress # labels of the service
+spec:
+  ports:
+    - port: 3306 # ports that are exposed by the service
+  selector: # select pods deployed in the later specified deployment
+    app: wordpress
+    tier: mysql
+  clusterIP: None # declare as "headless service"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim # specifies the resource as persistent volume claim
+metadata:
+  name: mysql-pv-claim # specified name of the persistent volume claim
+  labels:
+    app: wordpress # labels of the persistent volume claim
+spec:
+  accessModes:
+    - ReadWriteOnce # can be mounted as read-write by a single node
+  resources:
+    requests:
+      storage: 20Gi # request 20gb storage
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment # specifies this resource as deployment
+metadata:
+  name: wordpress-mysql # specified name for the deployment
+  labels:
+    app: wordpress # labels of the deployment
+spec:
+  selector:
+    matchLabels: # link pods labelled like this to the deployment
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
+  template: # template for created pods
+    metadata:
+      labels: # labels of the pods created by this deployment
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:5.6 # specify image
+        name: mysql # name of the container
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass # take value from the created secret
+              key: password # select the password
+        ports:
+        - containerPort: 3306 # exposed port
+          name: mysql # ???
+        volumeMounts:
+        - name: mysql-persistent-storage # name of the volume
+          mountPath: /var/lib/mysql # specify the path of to be persisted volume
+      volumes:
+      - name: mysql-persistent-storage # link to the former created volumeMount
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim # link to the former created PersistantVolumeClaim
